@@ -1,23 +1,23 @@
 import os
-from datetime import datetime
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 from anthropic import Anthropic
 from supabase import create_client, Client
 
-# Carrega variables d'entorn
 load_dotenv()
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+PORT = int(os.environ.get('PORT', 8443))  # Railway exposa aquest port
 
-# Inicialitza clients
+WEBHOOK_URL = f"{os.getenv('RAILWAY_WEBHOOK_URL')}/"  # El domini Railway, sense /bot...
+
 anthropic = Anthropic(api_key=CLAUDE_API_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Funció per guardar missatges a Supabase
 def guardar_missatge(update: Update, context: CallbackContext):
     if update.message and update.message.text:
         supabase.table("missatges").insert({
@@ -27,7 +27,6 @@ def guardar_missatge(update: Update, context: CallbackContext):
             "grup_id": str(update.message.chat_id)
         }).execute()
 
-# Comanda /missmi per resumir els últims X missatges
 def resumir(update: Update, context: CallbackContext):
     try:
         quantitat = int(context.args[0]) if context.args else 50
@@ -43,7 +42,7 @@ def resumir(update: Update, context: CallbackContext):
         .limit(quantitat)\
         .execute()
 
-    missatges = resposta.data[::-1]  # invertir per tenir-los en ordre cronològic
+    missatges = resposta.data[::-1]
 
     if not missatges:
         update.message.reply_text("Encara no hi ha prou missatges guardats per fer un resum.")
@@ -65,17 +64,22 @@ def resumir(update: Update, context: CallbackContext):
         update.message.reply_text("Error resumint amb Claude 😢")
         print(e)
 
-# Inicialització del bot
 def main():
-    updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
+    updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    dp.add_handler(MessageHandler(Filters.text & Filters.group, guardar_missatge))
+    dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.groups, guardar_missatge))
     dp.add_handler(CommandHandler("missmi", resumir))
 
-    updater.start_polling()
-    print("Bot en marxa...")
+    updater.start_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=TOKEN,
+        webhook_url=WEBHOOK_URL + TOKEN
+    )
+
+    print("Bot funcionant amb webhook...")
     updater.idle()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
