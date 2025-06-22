@@ -28,6 +28,7 @@ def guardar_missatge(update: Update, context: CallbackContext):
         }).execute()
 
 def resumir(update: Update, context: CallbackContext):
+    print("Handler de /missmi activat")
     try:
         quantitat = int(context.args[0]) if context.args else 50
     except ValueError:
@@ -64,12 +65,18 @@ def resumir(update: Update, context: CallbackContext):
         update.message.reply_text("Error resumint amb Claude 😢")
         print(e)
 
+def debug(update: Update, context: CallbackContext):
+    print("DEBUG - Missatge rebut:", update.message.text)
+    print("Entities:", update.message.entities)
+
 def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
     dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.groups, guardar_missatge))
     dp.add_handler(CommandHandler("missmi", resumir))
+
+    dp.add_handler(MessageHandler(Filters.all, debug))
 
     updater.start_webhook(
         listen="0.0.0.0",
