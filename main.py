@@ -111,14 +111,14 @@ def resposta(update: Update, context: CallbackContext):
 def missatge_general(update: Update, context: CallbackContext):
     text = update.message.text.strip()
 
-if text.startswith("/resumen"):
-    resumir(update, context)
+    if text.startswith("/resumen"):
+        resumir(update, context)
 
-elif text.startswith("/respuesta"):
-    resposta(update, context)
+    elif text.startswith("/respuesta"):
+        resposta(update, context)
 
-else:
-    guardar_missatge(update, context) 
+    else:
+        guardar_missatge(update, context) 
 
 def main():
     updater = Updater(TOKEN, use_context=True)
