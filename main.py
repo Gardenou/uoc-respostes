@@ -29,7 +29,6 @@ def guardar_missatge(update: Update, context: CallbackContext):
         }).execute()
 
 def resumir(update: Update, context: CallbackContext):
-    print("Handler de /resumen activat")
     try:
         quantitat = int(context.args[0]) if context.args else 50
     except ValueError:
@@ -51,6 +50,7 @@ def resumir(update: Update, context: CallbackContext):
         return
 
     bloc_text = "\n".join([f"{m['usuari']}: {m['text']}" for m in missatges])
+    print(bloc_text)
     update.message.reply_text("Generant resum amb Claude...")
 
     try:
@@ -58,7 +58,7 @@ def resumir(update: Update, context: CallbackContext):
             model="claude-3-haiku-20240307",
             max_tokens=500,
             messages=[
-                {"role": "user", "content": f"Haz un resumen claro en español de la siguiente conversación de un grupo de Telegram, pero de modo informal:\n\n{bloc_text}"}
+                {"role": "user", "content": f"Haz un resumen claro y coherente en español de la siguiente conversación de un grupo:\n\n{bloc_text}"}
             ]
         )
         update.message.reply_text(resposta_claude.content[0].text.strip())
