@@ -11,9 +11,9 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-PORT = int(os.environ.get('PORT', 8443))  # Railway exposa aquest port
+PORT = int(os.environ.get('PORT', 8443))
 
-WEBHOOK_URL = f"{os.getenv('RAILWAY_WEBHOOK_URL')}/"  # El domini Railway, sense /bot...
+WEBHOOK_URL = f"{os.getenv('RAILWAY_WEBHOOK_URL')}/"
 
 anthropic = Anthropic(api_key=CLAUDE_API_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -29,11 +29,11 @@ def guardar_missatge(update: Update, context: CallbackContext):
         }).execute()
 
 def resumir(update: Update, context: CallbackContext):
-    print("Handler de /missmi activat")
+    print("Handler de /resumen activat")
     try:
         quantitat = int(context.args[0]) if context.args else 50
     except ValueError:
-        update.message.reply_text("Has d'escriure un número després de /missmi, com ara: /missmi 100")
+        update.message.reply_text("Escribe el numero de mensajes que quieres resumir despues de /resumen, por ejemplo: /resumen 100")
         return
 
     grup_id = str(update.message.chat_id)
@@ -58,12 +58,12 @@ def resumir(update: Update, context: CallbackContext):
             model="claude-3-haiku-20240307",
             max_tokens=500,
             messages=[
-                {"role": "user", "content": f"Haz un resumen claro de la siguiente conversación de un grupo de Telegram, pero de modo informal:\n\n{bloc_text}"}
+                {"role": "user", "content": f"Haz un resumen claro en español de la siguiente conversación de un grupo de Telegram, pero de modo informal:\n\n{bloc_text}"}
             ]
         )
         update.message.reply_text(resposta_claude.content[0].text.strip())
     except Exception as e:
-        update.message.reply_text("Error resumint amb Claude 😢")
+        update.message.reply_text("Error resumint amb Claude ")
         print(e)
 
 def debug(update: Update, context: CallbackContext):
@@ -74,7 +74,7 @@ def missatge_general(update: Update, context: CallbackContext):
     text = update.message.text.strip()
 
     if text.startswith("/resumen"):
-        print("Interceptat resumen manualment")
+        print("Interceptat respuestas manualment")
         resumir(update, context)
     else:
         guardar_missatge(update, context)    
