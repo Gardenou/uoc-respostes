@@ -30,10 +30,16 @@ def guardar_missatge(update: Update, context: CallbackContext):
 
 def resumir(update: Update, context: CallbackContext):
     
-    if context.args:
-        quantitat = int(context.args[0])
+    parts = update.message.text.strip().split()
+
+    if len(parts) > 1:
+        try:
+            quantitat = int(parts[1])
+        except ValueError:
+            update.message.reply_text("El valor ha de ser un número. Exemple: /resumen 100")
+            return
     else:
-        update.message.reply_text("Escribe el numero de mensajes que quieres resumir despues de /resumen, por ejemplo: /resumen 100")
+        update.message.reply_text("Escribe el número de mensajes después de /resumen, por eejemplo: /resumen 100")
         return
 
     grup_id = str(update.message.chat_id)
@@ -69,11 +75,14 @@ def resumir(update: Update, context: CallbackContext):
         print(e)
 
 def resposta(update: Update, context: CallbackContext):
-    if context.args:
-        pregunta = context.args[0]
-        quantitat = 1000
+    text = update.message.text.strip()
+    parts = text.split(maxsplit=1)
+
+    if len(parts) > 1:
+        pregunta = parts[1]  # tot el que ve després de la comanda
+        quantitat = 1000     # o el que tu vulguis per defecte
     else:
-        update.message.reply_text("Escribe tu pregunta despues de /respuesta, por ejemplo: /respuesta Estan ya las notas?")
+        update.message.reply_text("Escribe tu pregunta después de /respuesta, por ejemplo: /respuesta ¿Están ya las notas?")
         return
     
     grup_id = str(update.message.chat_id)
