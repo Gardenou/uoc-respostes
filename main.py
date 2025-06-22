@@ -70,14 +70,24 @@ def debug(update: Update, context: CallbackContext):
     print("DEBUG - Missatge rebut:", update.message.text)
     print("Entities:", update.message.entities)
 
+def missatge_general(update: Update, context: CallbackContext):
+    text = update.message.text.strip()
+
+    if text.startswith("/resumen"):
+        print("Interceptat resumen manualment")
+        resumir(update, context)
+    else:
+        guardar_missatge(update, context)    
+
 def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.groups, guardar_missatge))
-    dp.add_handler(CommandHandler("missmi", resumir))
+    //dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.groups, guardar_missatge))
+    dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.groups, missatge_general))
+    //dp.add_handler(CommandHandler("respostes", resumir))
 
-    dp.add_handler(MessageHandler(Filters.all, debug))
+    //dp.add_handler(MessageHandler(Filters.all, debug))
 
     updater.start_webhook(
         listen="0.0.0.0",
