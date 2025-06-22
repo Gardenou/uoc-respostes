@@ -19,6 +19,7 @@ anthropic = Anthropic(api_key=CLAUDE_API_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def guardar_missatge(update: Update, context: CallbackContext):
+    print("Entro a guardar missatges")
     if update.message and update.message.text:
         supabase.table("missatges").insert({
             "usuari": update.message.from_user.first_name,
