@@ -50,6 +50,7 @@ def resumir(update: Update, context: CallbackContext):
         return
 
     bloc_text = "\n".join([f"{m['usuari']}: {m['text']}" for m in missatges])
+    print(resposta)
     print(bloc_text)
     update.message.reply_text("Generant resum amb Claude...")
 
