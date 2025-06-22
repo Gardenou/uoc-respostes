@@ -23,7 +23,7 @@ def guardar_missatge(update: Update, context: CallbackContext):
         supabase.table("missatges").insert({
             "usuari": update.message.from_user.first_name,
             "text": update.message.text,
-            "data": datetime.utcfromtimestamp(update.message.date.timestamp()),
+            "data": update.message.date.isoformat(),
             "grup_id": str(update.message.chat_id)
         }).execute()
 
