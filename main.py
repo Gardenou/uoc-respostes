@@ -58,7 +58,7 @@ def resumir(update: Update, context: CallbackContext):
             model="claude-3-haiku-20240307",
             max_tokens=500,
             messages=[
-                {"role": "user", "content": f"Fes un resum clar i coherent de la següent conversa de grup:\n\n{bloc_text}"}
+                {"role": "user", "content": f"Haz un resumen claro de la siguiente conversación de un grupo de Telegram, pero de modo informal:\n\n{bloc_text}"}
             ]
         )
         update.message.reply_text(resposta_claude.content[0].text.strip())
@@ -83,11 +83,7 @@ def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    //dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.groups, guardar_missatge))
     dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.groups, missatge_general))
-    //dp.add_handler(CommandHandler("respostes", resumir))
-
-    //dp.add_handler(MessageHandler(Filters.all, debug))
 
     updater.start_webhook(
         listen="0.0.0.0",
