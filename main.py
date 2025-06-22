@@ -39,7 +39,7 @@ def resumir(update: Update, context: CallbackContext):
     resposta = supabase.table("missatges")\
         .select("usuari, text")\
         .eq("grup_id", grup_id)\
-        .order("id", desc=True)\
+        .order("data", desc=True)\
         .limit(quantitat)\
         .execute()
 
