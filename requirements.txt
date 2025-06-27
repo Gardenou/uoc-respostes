@@ -4,4 +4,4 @@ supabase
 anthropic
 urllib3==1.26.16
 keybert
-torch==2.3.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+torch==2.3.0
