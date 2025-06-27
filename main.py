@@ -4,6 +4,9 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 from anthropic import Anthropic
 from supabase import create_client, Client
+from keybert import KeyBERT
+
+kw_model = KeyBERT()
 
 load_dotenv()
 
@@ -17,6 +20,15 @@ WEBHOOK_URL = f"{os.getenv('RAILWAY_WEBHOOK_URL')}/"
 
 anthropic = Anthropic(api_key=CLAUDE_API_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+def extreure_paraules_clau(pregunta, top_n=5):
+    keywords = kw_model.extract_keywords(
+        pregunta,
+        keyphrase_ngram_range=(1, 1),
+        stop_words='spanish',
+        top_n=top_n
+    )
+    return [kw[0] for kw in keywords]
 
 def guardar_missatge(update: Update, context: CallbackContext):
     print("Entro a guardar missatges")
@@ -79,8 +91,8 @@ def resposta(update: Update, context: CallbackContext):
     parts = text.split(maxsplit=1)
 
     if len(parts) > 1:
-        pregunta = parts[1]  # tot el que ve després de la comanda
-        quantitat = 1000     # o el que tu vulguis per defecte
+        pregunta = parts[1]
+        quantitat = 1000
     else:
         update.message.reply_text("Escribe tu pregunta después de /respuesta, por ejemplo: /respuesta ¿Están ya las notas?")
         return
@@ -98,7 +110,23 @@ def resposta(update: Update, context: CallbackContext):
         update.message.reply_text("Encara no hi ha prou missatges guardats per fer un resum.")
         return
 
-    bloc_text = "\n".join([f"{m['usuari']}: {m['text']}" for m in missatges])
+    # Obtenim paraules clau de la pregunta
+    paraules_clau = extreure_paraules_clau(pregunta, top_n=5)
+
+    # Busquem els missatges que continguin les paraules clau (amb context)
+    def filtrar_per_paraules_clau_amb_context(paraules_clau, missatges, finestra=10):
+        indexos_seleccionats = set()
+        for i, m in enumerate(missatges):
+            if any(paraula in m['text'].lower() for paraula in paraules_clau):
+                inici = max(0, i - finestra)
+                final = min(len(missatges), i + finestra + 1)
+                indexos_seleccionats.update(range(inici, final))
+        return [missatges[i] for i in sorted(indexos_seleccionats)]
+
+    missatges_relevants = filtrar_per_paraules_clau_amb_context(paraules_clau, missatges)
+
+    bloc_text = "\n".join([f"{m['usuari']}: {m['text']}" for m in missatges_relevants])
+    
     print(quantitat)
     print(resposta)
     print(bloc_text)
@@ -109,7 +137,7 @@ def resposta(update: Update, context: CallbackContext):
             model="claude-3-haiku-20240307",
             max_tokens=500,
             messages=[
-                {"role": "user", "content": f"Busca la respuesta a la pregunta {pregunta} en la siguiente conversación:\n\n{bloc_text}. Si no la encuentras, dame una respuesta segun tu información, pero especifica que la respuesta no está en el chat."}
+                {"role": "user", "content": f"Busca la respuesta a la pregunta {pregunta} en la siguiente conversación:\n\n{bloc_text}. Si no la encuentras, dame una respuesta igualmente, pero recuérdame que la respuesta no está en la conversación."}
             ]
         )
         update.message.reply_text(resposta_claude.content[0].text.strip())
