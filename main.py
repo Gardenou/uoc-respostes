@@ -1,13 +1,11 @@
 import os
 from dotenv import load_dotenv
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
 from anthropic import Anthropic
 from supabase import create_client, Client
 from keybert import KeyBERT
-from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 kw_model = KeyBERT()
 
 load_dotenv()
