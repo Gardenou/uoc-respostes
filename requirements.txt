@@ -5,6 +5,3 @@ anthropic
 urllib3==1.26.16
 keybert
 sentence-transformers
-scikit-learn
-transformers
-torch
