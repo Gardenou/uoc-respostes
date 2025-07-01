@@ -92,7 +92,7 @@ def resposta(update: Update, context: CallbackContext):
 
     if len(parts) > 1:
         pregunta = parts[1]
-        quantitat = 1000
+        quantitat = 2000
     else:
         update.message.reply_text("Escribe tu pregunta después de /respuesta, por ejemplo: /respuesta ¿Están ya las notas?")
         return
@@ -125,11 +125,10 @@ def resposta(update: Update, context: CallbackContext):
 
     missatges_relevants = filtrar_per_paraules_clau_amb_context(paraules_clau, missatges)
 
-    bloc_text = "\n".join([f"{m['usuari']}: {m['text']}" for m in missatges_relevants])
+    bloc_text = "\n".join([f"{m['usuari']}: {m['text']}" for m in missatges])
     
-    print(quantitat)
-    print(resposta)
-    print(bloc_text)
+    print(paraules_clau)
+
     update.message.reply_text("Buscando respuesta...")
 
     try:
