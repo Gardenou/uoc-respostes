@@ -57,6 +57,7 @@ def resumir(update: Update, context: CallbackContext):
     grup_id = str(update.message.chat_id)
     resposta = supabase.table("missatges")\
         .select("usuari, text")\
+        .eq("grup_id", grup_id)\
         .order("data", desc=True)\
         .limit(quantitat)\
         .execute()
@@ -68,8 +69,6 @@ def resumir(update: Update, context: CallbackContext):
         return
 
     bloc_text = "\n".join([f"{m['usuari']}: {m['text']}" for m in missatges])
-    print(quantitat)
-    print(resposta)
     print(bloc_text)
     update.message.reply_text("Generando resumen...")
 
@@ -169,7 +168,6 @@ def main():
         webhook_url=WEBHOOK_URL + TOKEN
     )
 
-    print("Bot funcionant amb webhook...")
     updater.idle()
 
 if __name__ == '__main__':
