@@ -146,7 +146,7 @@ def resposta(update: Update, context: CallbackContext):
 def missatge_general(update: Update, context: CallbackContext):
     text = update.message.text.strip()
 
-    if text.startswith("/resumen"):
+    if text.startswith("/resumenxxxxx"):
         resumir(update, context)
 
     elif text.startswith("/respuesta"):
