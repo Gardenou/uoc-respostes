@@ -21,15 +21,6 @@ WEBHOOK_URL = f"{os.getenv('RAILWAY_WEBHOOK_URL')}/"
 anthropic = Anthropic(api_key=CLAUDE_API_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def extreure_paraules_clau(pregunta, top_n=5):
-    keywords = kw_model.extract_keywords(
-        pregunta,
-        keyphrase_ngram_range=(1, 1),
-        stop_words='spanish',
-        top_n=top_n
-    )
-    return [kw[0] for kw in keywords]
-
 def guardar_missatge(update: Update, context: CallbackContext):
     print("Entro a guardar missatges")
     if update.message and update.message.text:
@@ -69,13 +60,12 @@ def resumir(update: Update, context: CallbackContext):
         return
 
     bloc_text = "\n".join([f"{m['usuari']}: {m['text']}" for m in missatges])
-    print(bloc_text)
     update.message.reply_text("Generando resumen...")
 
     try:
         resposta_claude = anthropic.messages.create(
             model="claude-3-haiku-20240307",
-            max_tokens=500,
+            max_tokens=400,
             messages=[
                 {"role": "user", "content": f"Haz un resumen claro y coherente en español de la siguiente conversación de un grupo:\n\n{bloc_text}"}
             ]
@@ -91,7 +81,7 @@ def resposta(update: Update, context: CallbackContext):
 
     if len(parts) > 1:
         pregunta = parts[1]
-        quantitat = 2000
+        quantitat = 6000
     else:
         update.message.reply_text("Escribe tu pregunta después de /respuesta, por ejemplo: /respuesta ¿Están ya las notas?")
         return
@@ -99,6 +89,7 @@ def resposta(update: Update, context: CallbackContext):
     grup_id = str(update.message.chat_id)
     resposta = supabase.table("missatges")\
         .select("usuari, text")\
+        .eq("grup_id", grup_id)\
         .order("data", desc=True)\
         .limit(quantitat)\
         .execute()
@@ -109,31 +100,14 @@ def resposta(update: Update, context: CallbackContext):
         update.message.reply_text("Encara no hi ha prou missatges guardats per fer un resum.")
         return
 
-    # Obtenim paraules clau de la pregunta
-    paraules_clau = extreure_paraules_clau(pregunta, top_n=5)
-
-    # Busquem els missatges que continguin les paraules clau (amb context)
-    def filtrar_per_paraules_clau_amb_context(paraules_clau, missatges, finestra=10):
-        indexos_seleccionats = set()
-        for i, m in enumerate(missatges):
-            if any(paraula in m['text'].lower() for paraula in paraules_clau):
-                inici = max(0, i - finestra)
-                final = min(len(missatges), i + finestra + 1)
-                indexos_seleccionats.update(range(inici, final))
-        return [missatges[i] for i in sorted(indexos_seleccionats)]
-
-    missatges_relevants = filtrar_per_paraules_clau_amb_context(paraules_clau, missatges)
-
     bloc_text = "\n".join([f"{m['usuari']}: {m['text']}" for m in missatges])
     
-    print(paraules_clau)
-
     update.message.reply_text("Buscando respuesta...")
 
     try:
         resposta_claude = anthropic.messages.create(
             model="claude-3-haiku-20240307",
-            max_tokens=500,
+            max_tokens=300,
             messages=[
                 {"role": "user", "content": f"Busca la respuesta a la pregunta {pregunta} en la siguiente conversación:\n\n{bloc_text}. Si no la encuentras, dame una respuesta igualmente, pero recuérdame que la respuesta no está en la conversación."}
             ]
@@ -146,10 +120,10 @@ def resposta(update: Update, context: CallbackContext):
 def missatge_general(update: Update, context: CallbackContext):
     text = update.message.text.strip()
 
-    if text.startswith("/resumenxxxxx"):
+    if text.startswith("/resumen"):
         resumir(update, context)
 
-    elif text.startswith("/respuesta"):
+    elif text.startswith("/pregunta"):
         resposta(update, context)
 
     else:
