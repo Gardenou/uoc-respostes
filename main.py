@@ -4,9 +4,6 @@ from telegram import Update
 from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
 from anthropic import Anthropic
 from supabase import create_client, Client
-from keybert import KeyBERT
-
-kw_model = KeyBERT()
 
 load_dotenv()
 
@@ -83,7 +80,7 @@ def resposta(update: Update, context: CallbackContext):
         pregunta = parts[1]
         quantitat = 6000
     else:
-        update.message.reply_text("Escribe tu pregunta después de /respuesta, por ejemplo: /respuesta ¿Están ya las notas?")
+        update.message.reply_text("Escribe tu pregunta después de /pregunta, por ejemplo: /pregunta ¿Están ya las notas?")
         return
     
     grup_id = str(update.message.chat_id)
@@ -107,12 +104,14 @@ def resposta(update: Update, context: CallbackContext):
     try:
         resposta_claude = anthropic.messages.create(
             model="claude-3-haiku-20240307",
-            max_tokens=300,
+            max_tokens=400,
             messages=[
                 {"role": "user", "content": f"Busca la respuesta a la pregunta {pregunta} en la siguiente conversación:\n\n{bloc_text}. Si no la encuentras, dame una respuesta igualmente, pero recuérdame que la respuesta no está en la conversación."}
             ]
         )
         update.message.reply_text(resposta_claude.content[0].text.strip())
+        print(bloc_text)
+        print(pregunta)
     except Exception as e:
         update.message.reply_text("Error resumint amb Claude ")
         print(e)
